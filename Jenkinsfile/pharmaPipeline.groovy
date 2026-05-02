@@ -79,11 +79,7 @@ node('jenkins-slave') {
         '''
 
         services.each { svc ->
-
             stage("Docker ${svc}") {
-
-                echo "Building and pushing ${svc}"
-
                 dockerBuildPush(
                     service: svc,
                     registry: registry,
