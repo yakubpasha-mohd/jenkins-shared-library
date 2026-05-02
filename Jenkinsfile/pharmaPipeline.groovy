@@ -30,10 +30,27 @@ node('jenkins-slave') {
     }
 
     /* ========================= */
-    stage('Checkout') {
-        git branch: branch, url: repoUrl
-    }
+    stage('Checkout & Versioning') {
 
+    git branch: branch, url: repoUrl
+
+    script {
+        def version = sh(
+            script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout",
+            returnStdout: true
+        ).trim()
+
+        def commitId = sh(
+            script: "git rev-parse --short HEAD",
+            returnStdout: true
+        ).trim()
+
+        // ✅ IMPORTANT: use env.
+        env.APP_IMAGE_ID = "${version}-${env.BUILD_NUMBER}-${commitId}"
+
+        echo "APP_IMAGE_ID = ${env.APP_IMAGE_ID}"
+    }
+}
     /* ========================= */
     stage(params.SERVICES == 'all' ? 'Build All Services' : "Build ${params.SERVICES}") {
         services.each { svc ->
