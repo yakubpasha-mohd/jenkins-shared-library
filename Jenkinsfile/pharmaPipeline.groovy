@@ -64,7 +64,7 @@ node('jenkins-slave') {
     }
 
     /* ========================= */
-   stage(params.SERVICES == 'all' 
+      stage(params.SERVICES == 'all' 
     ? 'Docker All Services' 
     : "Docker ${params.SERVICES}") {
 
