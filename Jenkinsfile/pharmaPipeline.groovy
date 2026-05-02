@@ -64,7 +64,7 @@ node('jenkins-slave') {
     }
 
     /* ========================= */
-      stage(params.SERVICES == 'all' 
+    stage(params.SERVICES == 'all' 
     ? 'Docker All Services' 
     : "Docker ${params.SERVICES}") {
 
@@ -79,13 +79,13 @@ node('jenkins-slave') {
         '''
 
         services.each { svc ->
-            stage("Docker ${svc}") {
-                dockerBuildPush(
-                    service: svc,
-                    registry: registry,
-                    tag: env.APP_IMAGE_ID
-                )
-            }
+            echo "🐳 Docker build ${svc}"
+
+            dockerBuildPush(
+                service: svc,
+                registry: registry,
+                tag: env.APP_IMAGE_ID
+            )
         }
     }
 }
