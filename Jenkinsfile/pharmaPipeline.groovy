@@ -101,7 +101,7 @@ def ALL_SERVICES = ['api-gateway', 'auth-service']
 def services = (params.SERVICES == 'all') 
     ? ALL_SERVICES 
     : [params.SERVICES]
-
+    /* ========================= */
 // Dynamic stage name (optional)
 def testStageName = (params.SERVICES == 'all') 
     ? 'Test All Services' 
