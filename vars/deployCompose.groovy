@@ -1,29 +1,25 @@
-def call(Map config) {
+def call(Map config = [:]) {
 
-    stage("Deploy ${config.environment}") {
+    def services    = config.services ?: []
+    def environment = config.environment ?: 'dev'
 
-        dir("${env.WORKSPACE}") {
+    services.each { svc ->
 
-            def composeFile = "docker-compose.${config.environment}.yml"
+        echo "Deploying ${svc} to ${environment}"
 
-            if (!fileExists(composeFile)) {
-                echo "⚠️ ${composeFile} not found, using default docker-compose.yml"
-                composeFile = "docker-compose.yml"
-            }
+        if (environment == 'dev') {
 
-            echo "Using compose file: ${composeFile}"
-            echo "Image tag: ${config.tag}"
+            sh "docker compose up -d ${svc}"
 
-            for (svc in config.services) {
-                sh """
-                sed -i 's|${config.registry}/${svc}:latest|${config.registry}/${svc}:${config.tag}|g' ${composeFile}
-                """
-            }
+        } else if (environment == 'qa') {
 
-            sh """
-                docker-compose -f ${composeFile} down || true
-                docker-compose -f ${composeFile} up -d
-            """
+            sh "docker compose -f docker-compose.qa.yml up -d ${svc}"
+
+        } else if (environment == 'prod') {
+
+            input message: "Deploy ${svc} to PROD?"
+
+            sh "docker compose -f docker-compose.prod.yml up -d ${svc}"
         }
     }
 }
