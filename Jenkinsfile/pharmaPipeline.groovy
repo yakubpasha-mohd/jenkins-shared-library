@@ -16,7 +16,7 @@ properties([
         ),
         choice(
             name: 'SERVICES',
-            choices: ['all','api-gateway','auth-service']
+            choices: ['all','api-gateway','auth-service','drug-catalog-service','notification-service','product-service','pharma-ui','order-service','user-service']
         )
     ])
 ])
