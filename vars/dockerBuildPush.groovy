@@ -1,18 +1,32 @@
 def call(Map config) {
 
-    dir("services/${config.service}") {
-        sh "docker build -t ${config.registry}/${config.service}:${config.tag} ."
+    if (!config.service) {
+        error "Service name is required"
     }
 
-    withCredentials([usernamePassword(
-        credentialsId: 'docker-cred',
-        usernameVariable: 'DOCKER_USER',
-        passwordVariable: 'DOCKER_PASS'
-    )]) {
+    if (!config.tag) {
+        error "Image tag is missing (APP_IMAGE_ID)"
+    }
+
+    def image = "${config.registry}/${config.service}:${config.tag}"
+
+    echo "Building image: ${image}"
+
+    dir("services/${config.service}") {
+
+        if (!fileExists("Dockerfile")) {
+            error "Dockerfile not found for ${config.service}"
+        }
 
         sh """
-            echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin
-            docker push ${config.registry}/${config.service}:${config.tag}
+            docker build \
+            --pull \
+            -t ${image} \
+            .
         """
     }
+
+    echo "Pushing image: ${image}"
+
+    sh "docker push ${image}"
 }
