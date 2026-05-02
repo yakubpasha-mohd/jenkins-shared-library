@@ -21,7 +21,7 @@ properties([
     ])
 ])
 
-node {
+node('jenkins-slave') {
 
     def registry    = 'myptech'
     def branch      = params.BRANCH
