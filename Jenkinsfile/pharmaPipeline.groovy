@@ -7,10 +7,10 @@ properties([
         string(name: 'BRANCH',
                defaultValue: 'main'),
         choice(name: 'ENVIRONMENT',
-               choices: ['dev','qa','staging','prod']),
-        string(name: 'SERVICES',
-               defaultValue: 'all,api-gateway,auth-service',
-               description: 'Comma separated services')
+               choices: ['dev','qa','staging','prod'])
+        choice(name: 'SERVICES',
+               choices: ['all','api-gateway','auth-service','prod'])
+                
     ])
 ])
 
