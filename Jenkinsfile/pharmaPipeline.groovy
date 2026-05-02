@@ -29,12 +29,9 @@ node('jenkins-slave') {
     def environment = params.ENVIRONMENT
     def ALL_SERVICES = ['api-gateway', 'auth-service']
     def services = (params.SERVICES == 'all') 
-    ? ALL_SERVICES 
-    : [params.SERVICES]
-
-echo "Resolved services: ${services}"
-    // Convert string → list
-    def services = params.SERVICES.split(',').collect { it.trim() }
+        ? ALL_SERVICES 
+        : [params.SERVICES]
+    echo "Resolved services: ${services}"
     
     /* ========================= */
     stage('Tools Setup') {
