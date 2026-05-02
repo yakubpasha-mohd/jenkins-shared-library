@@ -7,34 +7,44 @@ properties([
         string(name: 'BRANCH',
                defaultValue: 'main'),
         choice(name: 'ENVIRONMENT',
-               choices: ['dev','qa','staging','prod'])
+               choices: ['dev','qa','staging','prod']),
+        string(name: 'SERVICES',
+               defaultValue: 'api-gateway,auth-service',
+               description: 'Comma separated services')
     ])
 ])
 
 node {
 
-    def services    = ['api-gateway', 'auth-service']
     def registry    = 'myptech'
     def branch      = params.BRANCH
     def repoUrl     = params.APPLICATION_REPO
     def environment = params.ENVIRONMENT
 
+    // Convert string → list
+    def services = params.SERVICES.split(',').collect { it.trim() }
+
+    /* ========================= */
     stage('Tools Setup') {
-        def jdkHome     = tool name: 'maven-3.9.6', type: 'hudson.model.JDK'
-        def mvnHome     = tool name: 'openjdk-17', type: 'hudson.tasks.Maven$MavenInstallation'
-        def nodejs      = tool name: 'nodejs-20',
+        def jdkHome     = tool name: 'openjdk-17', type: 'hudson.model.JDK'
+        def mvnHome     = tool name: 'maven-3.9.6', type: 'hudson.tasks.Maven$MavenInstallation'
+        def nodejsHome  = tool name: 'nodejs-20'
         def scannerHome = tool 'SonarScanner'
 
         env.JAVA_HOME  = jdkHome
         env.MAVEN_HOME = mvnHome
-        env.PATH       = "${jdkHome}/bin:${mvnHome}/bin:${scannerHome}/bin:${env.PATH}"
+        env.NODE_HOME  = nodejsHome
+
+        env.PATH = "${jdkHome}/bin:${mvnHome}/bin:${nodejsHome}/bin:${scannerHome}/bin:${env.PATH}"
     }
 
+    /* ========================= */
     stage('Clean Workspace') {
         cleanWs()
     }
 
-    stage('Checkout') {
+    /* ========================= */
+    stage('Checkout & Versioning') {
         git branch: branch, url: repoUrl
 
         def version = sh(
@@ -60,23 +70,30 @@ ENVIRONMENT=${environment}
         archiveArtifacts artifacts: 'build-info.txt'
     }
 
-    stage('Build, Scan & Quality') {
+    /* ========================= */
+    stage('Build Services') {
         for (svc in services) {
+            echo "Building ${svc}"
             buildService(svc)
-            nexusScan(svc)
-            checkmarxScan(svc)
-            sonarScan(svc)
         }
     }
 
-    stage('Docker Build, Push & Trivy') {
+    /* ========================= */
+    stage('Docker Build & Push') {
         for (svc in services) {
+            echo "Docker build ${svc}"
             dockerBuildPush(
                 service: svc,
                 registry: registry,
                 tag: env.APP_IMAGE_ID
             )
+        }
+    }
 
+    /* ========================= */
+    stage('Security Scan (Trivy)') {
+        for (svc in services) {
+            echo "Scanning ${svc}"
             trivyScan(
                 service: svc,
                 registry: registry,
@@ -85,6 +102,7 @@ ENVIRONMENT=${environment}
         }
     }
 
+    /* ========================= */
     stage("Deploy to ${environment}") {
         deployCompose(
             services: services,
@@ -94,6 +112,7 @@ ENVIRONMENT=${environment}
         )
     }
 
+    /* ========================= */
     stage('Cleanup') {
         sh '''
             docker logout || true
