@@ -2,24 +2,27 @@ def call(Map config) {
 
     stage("Deploy ${config.environment}") {
 
-        echo "Deploying with tag: ${config.tag}"
-
         dir("${env.WORKSPACE}") {
 
-            sh "ls -l"
+            def composeFile = "docker-compose.${config.environment}.yml"
 
-            if (!fileExists("docker-compose.${config.environment}.yml")) {
-                error "Compose file missing!"
+            if (!fileExists(composeFile)) {
+                echo "⚠️ ${composeFile} not found, using default docker-compose.yml"
+                composeFile = "docker-compose.yml"
             }
+
+            echo "Using compose file: ${composeFile}"
+            echo "Image tag: ${config.tag}"
 
             for (svc in config.services) {
                 sh """
-                sed -i 's|${config.registry}/${svc}:latest|${config.registry}/${svc}:${config.tag}|g' docker-compose.${config.environment}.yml
+                sed -i 's|${config.registry}/${svc}:latest|${config.registry}/${svc}:${config.tag}|g' ${composeFile}
                 """
             }
 
             sh """
-                docker-compose -f docker-compose.${config.environment}.yml up -d
+                docker-compose -f ${composeFile} down || true
+                docker-compose -f ${composeFile} up -d
             """
         }
     }
