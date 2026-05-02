@@ -90,12 +90,11 @@ node('jenkins-slave') {
     }
 }
     /* ========================= */
-   def deployStageName = (params.SERVICES == 'all') 
+  def deployStageName = (params.SERVICES == 'all') 
     ? "Deploy ${environment} (All Services)" 
     : "Deploy ${environment} (${params.SERVICES})"
 
 stage(deployStageName) {
-
     dockerCompose(
         services: services,
         environment: environment
