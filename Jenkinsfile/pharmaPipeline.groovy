@@ -95,7 +95,24 @@ ENVIRONMENT=${environment}
         buildService(svc)
     }
 }
+// Resolve services once (you already have this)
+def ALL_SERVICES = ['api-gateway', 'auth-service']
 
+def services = (params.SERVICES == 'all') 
+    ? ALL_SERVICES 
+    : [params.SERVICES]
+
+// Dynamic stage name (optional)
+def testStageName = (params.SERVICES == 'all') 
+    ? 'Test All Services' 
+    : "Test ${params.SERVICES}"
+
+stage(testStageName) {
+    test(
+        services: services,
+        servicesDir: 'services'
+    )
+}
     /* ========================= */
     stage('Docker Build & Push') {
         for (svc in services) {
