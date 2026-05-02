@@ -104,7 +104,6 @@ ENVIRONMENT=${environment}
             servicesDir: 'services'
         )
     }
-}
     /* ========================= */
     stage('Docker Build & Push') {
         for (svc in services) {
