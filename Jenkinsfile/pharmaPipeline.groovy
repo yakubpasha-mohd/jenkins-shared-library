@@ -47,16 +47,35 @@ node('jenkins-slave') {
     }
 
     /* ========================= */
-    stage(params.SERVICES == 'all' ? 'Docker All Services' : "Docker ${params.SERVICES}") {
+   stage(params.SERVICES == 'all' 
+    ? 'Docker All Services' 
+    : "Docker ${params.SERVICES}") {
+
+    withCredentials([usernamePassword(
+        credentialsId: 'docker-cred',
+        usernameVariable: 'DOCKER_USER',
+        passwordVariable: 'DOCKER_PASS'
+    )]) {
+
+        sh '''
+            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+        '''
+
         services.each { svc ->
-            dockerBuildPush(
-                service: svc,
-                registry: registry,
-                tag: env.APP_IMAGE_ID
-            )
+
+            stage("Docker ${svc}") {
+
+                echo "Building and pushing ${svc}"
+
+                dockerBuildPush(
+                    service: svc,
+                    registry: registry,
+                    tag: env.APP_IMAGE_ID
+                )
+            }
         }
     }
-
+}
     /* ========================= */
    def deployStageName = (params.SERVICES == 'all') 
     ? "Deploy ${environment} (All Services)" 
