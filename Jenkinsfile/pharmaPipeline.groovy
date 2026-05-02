@@ -27,13 +27,11 @@ node('jenkins-slave') {
     def branch      = params.BRANCH
     def repoUrl     = params.APPLICATION_REPO
     def environment = params.ENVIRONMENT
+    // ✅ Declare ONCE
     def ALL_SERVICES = ['api-gateway', 'auth-service']
     def services = (params.SERVICES == 'all') 
-    ? ALL_SERVICES 
-    : [params.SERVICES]
-    def buildStageName = (params.SERVICES == 'all') 
-    ? 'Build All Services' 
-    : "Build ${params.SERVICES}"
+        ? ALL_SERVICES 
+        : [params.SERVICES]
     echo "Resolved services: ${services}"
     
     /* ========================= */
@@ -89,29 +87,23 @@ ENVIRONMENT=${environment}
     }
 
     /* ========================= */
-   stage(buildStageName) {
-    for (svc in services) {
-        echo "Building ${svc}"
-        buildService(svc)
+    stage('Build Services') {
+        for (svc in services) {
+            buildService(svc)
+        }
     }
-}
-// Resolve services once (you already have this)
-def ALL_SERVICES = ['api-gateway', 'auth-service']
 
-def services = (params.SERVICES == 'all') 
-    ? ALL_SERVICES 
-    : [params.SERVICES]
     /* ========================= */
-// Dynamic stage name (optional)
-def testStageName = (params.SERVICES == 'all') 
-    ? 'Test All Services' 
-    : "Test ${params.SERVICES}"
+    def testStageName = (params.SERVICES == 'all') 
+        ? 'Test All Services' 
+        : "Test ${params.SERVICES}"
 
-stage(testStageName) {
-    test(
-        services: services,
-        servicesDir: 'services'
-    )
+    stage(testStageName) {
+        test(
+            services: services,
+            servicesDir: 'services'
+        )
+    }
 }
     /* ========================= */
     stage('Docker Build & Push') {
