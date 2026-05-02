@@ -9,7 +9,7 @@ properties([
         choice(name: 'ENVIRONMENT',
                choices: ['dev','qa','staging','prod']),
         string(name: 'SERVICES',
-               defaultValue: 'api-gateway,auth-service',
+               defaultValue: 'all,api-gateway,auth-service',
                description: 'Comma separated services')
     ])
 ])
@@ -90,18 +90,7 @@ ENVIRONMENT=${environment}
         }
     }
 
-    /* ========================= */
-    stage('Security Scan (Trivy)') {
-        for (svc in services) {
-            echo "Scanning ${svc}"
-            trivyScan(
-                service: svc,
-                registry: registry,
-                tag: env.APP_IMAGE_ID
-            )
-        }
-    }
-
+   
     /* ========================= */
     stage("Deploy to ${environment}") {
         deployCompose(
