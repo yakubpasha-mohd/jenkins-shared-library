@@ -35,12 +35,20 @@ node {
     stage('Tools Setup') {
         def jdkHome     = tool name: 'openjdk-17', type: 'hudson.model.JDK'
         def mvnHome     = tool name: 'maven-3.9.6', type: 'hudson.tasks.Maven$MavenInstallation'
-        def nodejsHome  = tool name: 'nodejs-20'       
+        def nodejsHome = tool name: 'nodejs-20'
+        def scannerHome = tool 'SonarScanner'
         env.JAVA_HOME  = jdkHome
         env.MAVEN_HOME = mvnHome
         env.NODE_HOME  = nodejsHome
 
         env.PATH = "${jdkHome}/bin:${mvnHome}/bin:${nodejsHome}/bin:${scannerHome}/bin:${env.PATH}"
+
+        sh '''
+echo "JAVA_HOME=$JAVA_HOME"
+echo "MAVEN_HOME=$MAVEN_HOME"
+echo "NODE_HOME=$NODE_HOME"
+echo "PATH=$PATH"
+'''
     }
 
     /* ========================= */
