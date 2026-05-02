@@ -27,10 +27,15 @@ node('jenkins-slave') {
     def branch      = params.BRANCH
     def repoUrl     = params.APPLICATION_REPO
     def environment = params.ENVIRONMENT
+    def ALL_SERVICES = ['api-gateway', 'auth-service']
+    def services = (params.SERVICES == 'all') 
+    ? ALL_SERVICES 
+    : [params.SERVICES]
 
+echo "Resolved services: ${services}"
     // Convert string → list
     def services = params.SERVICES.split(',').collect { it.trim() }
-
+    
     /* ========================= */
     stage('Tools Setup') {
         def jdkHome     = tool name: 'openjdk-17', type: 'hudson.model.JDK'
@@ -84,13 +89,6 @@ ENVIRONMENT=${environment}
     }
 
     /* ========================= */
-   def ALL_SERVICES = ['api-gateway', 'auth-service']
-
-def services = (params.SERVICES == 'all') 
-    ? ALL_SERVICES 
-    : [params.SERVICES]
-
-echo "Resolved services: ${services}"
     stage('Build Services') {
         for (svc in services) {
             echo "Building ${svc}"
