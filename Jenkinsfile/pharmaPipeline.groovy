@@ -14,7 +14,7 @@ properties([
 node {
 
     def services    = ['api-gateway', 'auth-service']
-    def registry    = 'your-dockerhub-user'
+    def registry    = 'myptech'
     def branch      = params.BRANCH
     def repoUrl     = params.APPLICATION_REPO
     def environment = params.ENVIRONMENT
