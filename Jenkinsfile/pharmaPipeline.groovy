@@ -1,6 +1,6 @@
 @Library('my-shared-lib') _
 
-node('jenkins-slave') {
+node() {
 
     /* ========================= */
     // 🔹 Config
