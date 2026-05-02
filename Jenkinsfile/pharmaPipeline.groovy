@@ -84,6 +84,13 @@ ENVIRONMENT=${environment}
     }
 
     /* ========================= */
+    def ALL_SERVICES = ['api-gateway', 'auth-service']
+
+def services = (params.SERVICES == 'all') 
+    ? ALL_SERVICES 
+    : [params.SERVICES]
+
+echo "Resolved services: ${services
     stage('Build Services') {
         for (svc in services) {
             echo "Building ${svc}"
