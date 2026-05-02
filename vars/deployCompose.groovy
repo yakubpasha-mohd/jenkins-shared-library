@@ -2,7 +2,15 @@ def call(Map config) {
 
     stage("Deploy ${config.environment}") {
 
-        dir("${env.WORKSPACE}") {   // ✅ ensure root directory
+        echo "Deploying with tag: ${config.tag}"
+
+        dir("${env.WORKSPACE}") {
+
+            sh "ls -l"
+
+            if (!fileExists("docker-compose.${config.environment}.yml")) {
+                error "Compose file missing!"
+            }
 
             for (svc in config.services) {
                 sh """
@@ -11,7 +19,6 @@ def call(Map config) {
             }
 
             sh """
-                docker-compose -f docker-compose.${config.environment}.yml down || true
                 docker-compose -f docker-compose.${config.environment}.yml up -d
             """
         }
