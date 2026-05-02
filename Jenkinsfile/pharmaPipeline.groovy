@@ -3,7 +3,7 @@
 properties([
     parameters([
         string(name: 'APPLICATION_REPO',
-               defaultValue: 'https://github.com/company/pharmaops-v1.git'),
+               defaultValue: 'https://github.com/yakubpasha-mohd/pharmaops.git'),
         string(name: 'BRANCH',
                defaultValue: 'main'),
         choice(name: 'ENVIRONMENT',
