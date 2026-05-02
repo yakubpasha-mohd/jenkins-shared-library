@@ -1,4 +1,4 @@
-@Library('pharma-shared-lib') _
+@Library('my-shared-lib') _
 
 properties([
     parameters([
