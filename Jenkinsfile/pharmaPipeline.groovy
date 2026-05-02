@@ -29,8 +29,11 @@ node('jenkins-slave') {
     def environment = params.ENVIRONMENT
     def ALL_SERVICES = ['api-gateway', 'auth-service']
     def services = (params.SERVICES == 'all') 
-        ? ALL_SERVICES 
-        : [params.SERVICES]
+    ? ALL_SERVICES 
+    : [params.SERVICES]
+    def buildStageName = (params.SERVICES == 'all') 
+    ? 'Build All Services' 
+    : "Build ${params.SERVICES}"
     echo "Resolved services: ${services}"
     
     /* ========================= */
@@ -86,12 +89,12 @@ ENVIRONMENT=${environment}
     }
 
     /* ========================= */
-    stage('Build Services') {
-        for (svc in services) {
-            echo "Building ${svc}"
-            buildService(svc)
-        }
+   stage(buildStageName) {
+    for (svc in services) {
+        echo "Building ${svc}"
+        buildService(svc)
     }
+}
 
     /* ========================= */
     stage('Docker Build & Push') {
