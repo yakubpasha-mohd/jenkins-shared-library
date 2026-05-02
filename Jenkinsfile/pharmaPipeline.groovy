@@ -2,6 +2,8 @@
 
 node('jenkins-slave') {
 
+    /* ========================= */
+    // 🔹 Config
     def registry    = 'myptech'
     def branch      = params.BRANCH
     def repoUrl     = params.APPLICATION_REPO
@@ -17,87 +19,123 @@ node('jenkins-slave') {
         ? ALL_SERVICES 
         : [params.SERVICES]
 
-    echo "Resolved services: ${services}"
+    echo "🚀 Services Selected: ${services}"
+    echo "🌍 Environment: ${environment}"
 
     /* ========================= */
-    stage('Tools Setup') {
+    stage('Setup Tools') {
+
         def jdkHome     = tool name: 'openjdk-17', type: 'hudson.model.JDK'
         def mvnHome     = tool name: 'maven-3.9.6', type: 'hudson.tasks.Maven$MavenInstallation'
         def nodejsHome  = tool name: 'nodejs-20'
         def scannerHome = tool 'SonarScanner'
 
+        env.JAVA_HOME  = jdkHome
+        env.MAVEN_HOME = mvnHome
+        env.NODE_HOME  = nodejsHome
+
         env.PATH = "${jdkHome}/bin:${mvnHome}/bin:${nodejsHome}/bin:${scannerHome}/bin:${env.PATH}"
+
+        sh '''
+            echo "JAVA_HOME=$JAVA_HOME"
+            echo "MAVEN_HOME=$MAVEN_HOME"
+            echo "NODE_HOME=$NODE_HOME"
+        '''
     }
 
     /* ========================= */
     stage('Checkout & Versioning') {
 
-    git branch: branch, url: repoUrl
+        cleanWs()
+        git branch: branch, url: repoUrl
 
-    script {
-        def version = sh(
-            script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout",
-            returnStdout: true
-        ).trim()
+        script {
+            def version = sh(
+                script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout",
+                returnStdout: true
+            ).trim()
 
-        def commitId = sh(
-            script: "git rev-parse --short HEAD",
-            returnStdout: true
-        ).trim()
+            def commitId = sh(
+                script: "git rev-parse --short HEAD",
+                returnStdout: true
+            ).trim()
 
-        // ✅ IMPORTANT: use env.
-        env.APP_IMAGE_ID = "${version}-${env.BUILD_NUMBER}-${commitId}"
+            env.APP_IMAGE_ID = "${version}-${env.BUILD_NUMBER}-${commitId}"
 
-        echo "APP_IMAGE_ID = ${env.APP_IMAGE_ID}"
+            echo "🏷️ APP_IMAGE_ID = ${env.APP_IMAGE_ID}"
+        }
     }
-}
+
     /* ========================= */
-    stage(params.SERVICES == 'all' ? 'Build All Services' : "Build ${params.SERVICES}") {
+    stage(params.SERVICES == 'all' 
+        ? 'Build All Services' 
+        : "Build ${params.SERVICES}") {
+
         services.each { svc ->
+            echo "🔨 Building ${svc}"
             buildService(svc)
         }
     }
 
     /* ========================= */
-    stage(params.SERVICES == 'all' ? 'Test All Services' : "Test ${params.SERVICES}") {
-        test(services: services, servicesDir: 'services')
+    stage(params.SERVICES == 'all' 
+        ? 'Test All Services' 
+        : "Test ${params.SERVICES}") {
+
+        test(
+            services: services,
+            servicesDir: 'services'
+        )
     }
 
     /* ========================= */
     stage(params.SERVICES == 'all' 
-    ? 'Docker All Services' 
-    : "Docker ${params.SERVICES}") {
+        ? 'Docker All Services' 
+        : "Docker ${params.SERVICES}") {
 
-    withCredentials([usernamePassword(
-        credentialsId: 'docker-cred',
-        usernameVariable: 'DOCKER_USER',
-        passwordVariable: 'DOCKER_PASS'
-    )]) {
+        if (!env.APP_IMAGE_ID) {
+            error "APP_IMAGE_ID missing before Docker stage"
+        }
 
-        sh '''
-            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
-        '''
+        withCredentials([usernamePassword(
+            credentialsId: 'docker-cred',
+            usernameVariable: 'DOCKER_USER',
+            passwordVariable: 'DOCKER_PASS'
+        )]) {
 
-        services.each { svc ->
-            echo "🐳 Docker build ${svc}"
+            sh '''
+                echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+            '''
 
-            dockerBuildPush(
-                service: svc,
-                registry: registry,
-                tag: env.APP_IMAGE_ID
-            )
+            services.each { svc ->
+
+                echo "🐳 Building Docker image for ${svc}"
+
+                dockerBuildPush(
+                    service: svc,
+                    registry: registry,
+                    tag: env.APP_IMAGE_ID
+                )
+            }
         }
     }
-}
-    /* ========================= */
-  def deployStageName = (params.SERVICES == 'all') 
-    ? "Deploy ${environment} (All Services)" 
-    : "Deploy ${environment} (${params.SERVICES})"
 
-stage(deployStageName) {
-    dockerCompose(
-        services: services,
-        environment: environment
-    )
-}
+    /* ========================= */
+    stage(params.SERVICES == 'all' 
+        ? "Deploy ${environment} (All Services)" 
+        : "Deploy ${environment} (${params.SERVICES})") {
+
+        dockerCompose(
+            services: services,
+            environment: environment
+        )
+    }
+
+    /* ========================= */
+    stage('Cleanup') {
+        sh '''
+            docker logout || true
+            docker system prune -f || true
+        '''
+    }
 }
