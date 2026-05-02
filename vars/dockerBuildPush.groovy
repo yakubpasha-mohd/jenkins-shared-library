@@ -1,22 +1,10 @@
 def call(Map config) {
 
-    if (!config.service) {
-        error "Service name is required"
-    }
-
-    if (!config.tag) {
-        error "Image tag is missing (APP_IMAGE_ID)"
-    }
-
     def image = "${config.registry}/${config.service}:${config.tag}"
 
     echo "Building image: ${image}"
 
     dir("services/${config.service}") {
-
-        if (!fileExists("Dockerfile")) {
-            error "Dockerfile not found for ${config.service}"
-        }
 
         sh """
             docker build \
