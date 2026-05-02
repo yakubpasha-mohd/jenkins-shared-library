@@ -58,12 +58,15 @@ node('jenkins-slave') {
     }
 
     /* ========================= */
-    stage("Deploy ${environment}") {
-        deployCompose(
-            services: services,
-            registry: registry,
-            tag: env.APP_IMAGE_ID,
-            environment: environment
-        )
-    }
+   def deployStageName = (params.SERVICES == 'all') 
+    ? "Deploy ${environment} (All Services)" 
+    : "Deploy ${environment} (${params.SERVICES})"
+
+stage(deployStageName) {
+
+    dockerCompose(
+        services: services,
+        environment: environment
+    )
+}
 }
