@@ -88,7 +88,7 @@ node
             servicesDir: 'services'
         )
     }
-    /* ==========================* /
+    /* ========================== */
     stage(params.SERVICES == 'all' 
     ? 'Sonar Scan (All Services)' 
     : "Sonar Scan (${params.SERVICES})") {
