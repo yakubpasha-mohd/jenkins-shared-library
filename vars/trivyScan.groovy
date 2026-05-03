@@ -19,13 +19,13 @@ def call(Map config = [:]) {
           -v \$WORKSPACE:/workspace \
           aquasec/trivy:latest image \
           --severity HIGH,CRITICAL \
-          --format html \
+          --format template \
+          --template "@/contrib/html.tpl" \
           --output /workspace/${report} \
           ${image}
     """
 
     archiveArtifacts artifacts: report
 
-    // 🔗 Print clickable link in Jenkins logs
     echo "🌐 Trivy Report: ${env.BUILD_URL}artifact/${report}"
 }
