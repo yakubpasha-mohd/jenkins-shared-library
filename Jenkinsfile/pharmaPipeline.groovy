@@ -175,6 +175,34 @@ def services = (selectedService == 'all')
     }
     /* ------------------------- */
        stage(params.SERVICES == 'all' 
+    ? 'Push to Nexus (All Services)' 
+    : "Push to Nexus (${params.SERVICES})") {
+
+    withCredentials([usernamePassword(
+        credentialsId: 'nexus-cred',
+        usernameVariable: 'NEXUS_USER',
+        passwordVariable: 'NEXUS_PASS'
+    )]) {
+
+        sh """
+            echo \$NEXUS_PASS | docker login ${NEXUS_URL} -u \$NEXUS_USER --password-stdin
+        """
+
+        services.each { svc ->
+
+            echo "📦 Nexus push for ${svc}"
+
+            nexusPush(
+                service: svc,
+                tag: env.APP_IMAGE_ID,
+                registry: registry,
+                nexusUrl: "${NEXUS_URL}/repository/docker-hosted"
+            )
+        }
+    }
+}
+    /* ------------------------- */
+       stage(params.SERVICES == 'all' 
     ? 'Trivy Scan (All Services)' 
     : "Trivy Scan (${params.SERVICES})") {
 
