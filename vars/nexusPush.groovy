@@ -11,8 +11,7 @@ def call(Map config = [:]) {
     }
 
     def sourceImage = "${registry}/${service}:${tag}"
-    def targetImage = "${nexusHost}:8082/${service}:${tag}"
-
+    def targetImage = "${nexusHost}:8082/${service}:${tag}"    
     echo "📦 Pushing ${service} to Nexus"
 
     sh """
