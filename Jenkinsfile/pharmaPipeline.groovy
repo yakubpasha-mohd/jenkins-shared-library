@@ -44,7 +44,7 @@ node
     def repoUrl     = params.APPLICATION_REPO
     def environment = params.ENVIRONMENT
     def selectedService = params.SERVICES
-
+    def NEXUS_URL = "100.50.84.49:8082"
     def ALL_SERVICES = [
     'api-gateway','auth-service','drug-catalog-service',
     'notification-service','product-service','pharma-ui',
