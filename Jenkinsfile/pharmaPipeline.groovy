@@ -220,15 +220,19 @@ def services = (selectedService == 'all')
     }
 }
     /* ========================= */
-    stage(params.SERVICES == 'all' 
-        ? "Deploy ${environment} (All Services)" 
-        : "Deploy ${environment} (${params.SERVICES})") {
+  def deployStageName = (params.SERVICES == 'all') 
+    ? "Deploy ${environment} (All Services)" 
+    : "Deploy ${environment} (${params.SERVICES})"
 
-        dockerCompose(
-            services: services,
-            environment: environment
-        )
-    }
+stage(deployStageName) {
+
+    dockerCompose(
+        services: services,
+        environment: environment,
+        nexusHost: "100.50.84.49",
+        tag: env.APP_IMAGE_ID
+    )
+}
 
     /* ========================= */
     stage('Cleanup') {
