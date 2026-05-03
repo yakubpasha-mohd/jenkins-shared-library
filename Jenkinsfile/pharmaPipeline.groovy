@@ -29,7 +29,7 @@ node
         def jdkHome     = tool name: 'openjdk-17', type: 'hudson.model.JDK'
         def mvnHome     = tool name: 'maven-3.9.6', type: 'hudson.tasks.Maven$MavenInstallation'
         def nodejsHome  = tool name: 'nodejs-20'
-        def scannerHome = tool 'SonarScanner'
+        def scannerHome = tool 'SonarQube'
 
         env.JAVA_HOME  = jdkHome
         env.MAVEN_HOME = mvnHome
