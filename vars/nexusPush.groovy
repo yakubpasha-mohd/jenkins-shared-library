@@ -3,14 +3,15 @@ def call(Map config = [:]) {
     def service   = config.service
     def tag       = config.tag
     def registry  = config.registry
-    def nexusUrl  = config.nexusUrl
+    def nexusHost = config.nexusHost   // only host (no port)
+    def repoName  = config.repo ?: "docker-hosted"
 
-    if (!service || !tag || !registry || !nexusUrl) {
+    if (!service || !tag || !registry || !nexusHost) {
         error "Missing required params for Nexus push"
     }
 
     def sourceImage = "${registry}/${service}:${tag}"
-    def targetImage = "${nexusUrl}/${service}:${tag}"
+    def targetImage = "${nexusHost}:8082/${service}:${tag}"
 
     echo "📦 Pushing ${service} to Nexus"
 
@@ -19,5 +20,11 @@ def call(Map config = [:]) {
         docker push ${targetImage}
     """
 
-    echo "✅ Nexus push completed: ${targetImage}"
+    // 🔗 Docker registry reference
+    echo "🐳 Image: ${targetImage}"
+
+    // 🌐 Browser link (Nexus UI)
+    def nexusUiUrl = "http://${nexusHost}:8081/#browse/browse:${repoName}"
+
+    echo "🌐 Nexus UI: ${nexusUiUrl}"
 }
