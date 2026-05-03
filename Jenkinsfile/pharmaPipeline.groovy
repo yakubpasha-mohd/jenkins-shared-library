@@ -1,13 +1,18 @@
 @Library('my-shared-lib') _
-
-node 
-   {
-
-    /* ========================= */
-      
-    // 🔹 Config
-   properties([
+properties([
     parameters([
+
+        string(
+            name: 'APPLICATION_REPO',
+            defaultValue: 'https://github.com/yakubpasha-mohd/pharmaops.git',
+            description: 'Git repository URL'
+        ),
+
+        string(
+            name: 'BRANCH',
+            defaultValue: 'main',
+            description: 'Git branch'
+        ),
 
         choice(
             name: 'ENVIRONMENT',
@@ -30,6 +35,10 @@ node
         )
     ])
 ])
+node 
+   {
+
+    /* ========================= */       
     def registry    = 'myptech'
     def branch      = params.BRANCH
     def repoUrl     = params.APPLICATION_REPO
