@@ -4,24 +4,50 @@ node
    {
 
     /* ========================= */
+      
     // 🔹 Config
+   properties([
+    parameters([
+
+        choice(
+            name: 'ENVIRONMENT',
+            choices: ['dev','test','qa','prod']
+        ),
+
+        choice(
+            name: 'SERVICES',
+            choices: [
+                'all',
+                'api-gateway',
+                'auth-service',
+                'drug-catalog-service',
+                'notification-service',
+                'product-service',
+                'pharma-ui',
+                'order-service',
+                'user-service'
+            ]
+        )
+    ])
+])
     def registry    = 'myptech'
     def branch      = params.BRANCH
     def repoUrl     = params.APPLICATION_REPO
     def environment = params.ENVIRONMENT
+    def selectedService = params.SERVICES
 
     def ALL_SERVICES = [
-        'api-gateway','auth-service','drug-catalog-service',
-        'notification-service','product-service','pharma-ui',
-        'order-service','user-service'
-    ]
+    'api-gateway','auth-service','drug-catalog-service',
+    'notification-service','product-service','pharma-ui',
+    'order-service','user-service'
+]
 
-    def services = (params.SERVICES == 'all') 
-        ? ALL_SERVICES 
-        : [params.SERVICES]
+def services = (selectedService == 'all')
+    ? ALL_SERVICES
+    : [selectedService]
 
-    echo "🚀 Services Selected: ${services}"
-    echo "🌍 Environment: ${environment}"
+    echo "ENV = ${environment}"
+    echo "SERVICES = ${services}"
 
     /* ========================= */
     stage('Setup Tools') {
