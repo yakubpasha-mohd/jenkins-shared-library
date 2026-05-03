@@ -220,18 +220,21 @@ def services = (selectedService == 'all')
     }
 }
     /* ========================= */
-  def deployStageName = (params.SERVICES == 'all') 
-    ? "Deploy ${environment} (All Services)" 
-    : "Deploy ${environment} (${params.SERVICES})"
+  services.each { svc ->
 
-stage(deployStageName) {
+    def stageName = (params.SERVICES == 'all')
+        ? "Deploy ${environment} :: ${svc}"
+        : "Deploy ${environment} (${svc})"
 
-    dockerCompose(
-        services: services,
-        environment: environment,
-        nexusHost: "100.50.84.49",
-        tag: env.APP_IMAGE_ID
-    )
+    stage(stageName) {
+
+        dockerCompose(
+            service: svc,            
+            environment: environment,
+            nexusHost: "100.50.84.49",
+            tag: env.APP_IMAGE_ID
+        )
+    }
 }
 
     /* ========================= */
