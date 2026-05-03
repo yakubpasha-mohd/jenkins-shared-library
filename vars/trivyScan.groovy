@@ -8,8 +8,8 @@ def call(Map config = [:]) {
         error "Missing required params: service/registry/tag"
     }
 
-    def image = "${registry}/${service}:${tag}"
-    def report = "trivy-${service}.txt"
+    def image  = "${registry}/${service}:${tag}"
+    def report = "trivy-${service}.html"
 
     echo "🔍 Trivy scanning image: ${image}"
 
@@ -19,12 +19,13 @@ def call(Map config = [:]) {
           -v \$WORKSPACE:/workspace \
           aquasec/trivy:latest image \
           --severity HIGH,CRITICAL \
-          --format table \
+          --format html \
           --output /workspace/${report} \
           ${image}
     """
 
     archiveArtifacts artifacts: report
 
-    echo "✅ Trivy report generated: ${report}"
+    // 🔗 Print clickable link in Jenkins logs
+    echo "🌐 Trivy Report: ${env.BUILD_URL}artifact/${report}"
 }
