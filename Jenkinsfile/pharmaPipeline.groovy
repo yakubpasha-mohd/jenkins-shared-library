@@ -191,13 +191,15 @@ def services = (selectedService == 'all')
         services.each { svc ->
 
             echo "📦 Nexus push for ${svc}"
-
             nexusPush(
-                service: svc,
-                tag: env.APP_IMAGE_ID,
-                registry: registry,
-                nexusUrl: "${NEXUS_URL}/repository/docker-hosted"
-            )
+    service: svc,
+    tag: env.APP_IMAGE_ID,
+    registry: registry,
+    nexusHost: "100.50.84.49",   // ✅ ONLY host
+    repo: "docker-hosted"
+)
+
+            
         }
     }
 }
