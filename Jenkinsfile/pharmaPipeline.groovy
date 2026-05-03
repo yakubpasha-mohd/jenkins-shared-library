@@ -173,7 +173,22 @@ def services = (selectedService == 'all')
             }
         }
     }
+    /* ------------------------- */
+       stage(params.SERVICES == 'all' 
+    ? 'Trivy Scan (All Services)' 
+    : "Trivy Scan (${params.SERVICES})") {
 
+    services.each { svc ->
+
+        echo "🔍 Trivy scan for ${svc}"
+
+        trivyScan(
+            service: svc,
+            registry: registry,
+            tag: env.APP_IMAGE_ID
+        )
+    }
+}
     /* ========================= */
     stage(params.SERVICES == 'all' 
         ? "Deploy ${environment} (All Services)" 
