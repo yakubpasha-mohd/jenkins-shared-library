@@ -102,17 +102,10 @@ node
 }
     /* ========================= */
       stage('Quality Gate') {
-
-    timeout(time: 5, unit: 'MINUTES') {
-
-        def qg = waitForQualityGate()
-
-        echo "Quality Gate Status: ${qg.status}"
-
-        if (qg.status != 'OK') {
-            error "❌ Pipeline failed due to Sonar Quality Gate: ${qg.status}"
-        }
-    }
+    qualityGate(
+        timeout: 5,
+        abortPipeline: true
+    )
 }
     /* ========================= */
     stage(params.SERVICES == 'all' 
