@@ -9,37 +9,48 @@ def call(Map config = [:]) {
         error "Missing required params for deployment"
     }
 
-    def composeFile = "docker-compose.yml"
-
-    if (environment != 'dev') {
-        composeFile = "docker-compose.${environment}.yml"
-    }
+    // 🔹 Compose file resolution
+    def composeFile = (environment == 'dev') 
+        ? "docker-compose.yml"
+        : "docker-compose.${environment}.yml"
 
     if (!fileExists(composeFile)) {
         error "Compose file not found: ${composeFile}"
     }
 
-    echo "🚀 Deploying using ${composeFile}"
+    echo "🚀 Using compose file: ${composeFile}"
+    echo "🎯 Services to deploy: ${services}"
 
     services.each { svc ->
 
-        def image = "${nexusHost}:8082/${svc}:${tag}"
+        // 🔹 Stage naming per service
+        stage("Deploy ${environment} :: ${svc}") {
 
-        echo "⬇ Pulling image: ${image}"
-        sh "docker pull ${image}"
+            def image = "${nexusHost}:8082/${svc}:${tag}"
 
-        echo "🔄 Updating compose for ${svc}"
+            echo "⬇ Pulling image: ${image}"
+            sh "docker pull ${image}"
 
-        sh """
-            sed -i 's|image: .*${svc}:.*|image: ${image}|g' ${composeFile}
-        """
+            // 🔹 Update ONLY this service image
+            echo "🔄 Updating image for ${svc}"
 
-        echo "🚀 Deploying ${svc}"
+            sh """
+                sed -i '/${svc}/,/image:/ s|image:.*|image: ${image}|' ${composeFile}
+            """
 
-        if (environment == 'prod') {
-            input "Approve deployment of ${svc} to PROD?"
+            // 🔹 Optional approval for PROD
+            if (environment == 'prod') {
+                input message: "Approve deployment of ${svc} to PROD?"
+            }
+
+            echo "🚀 Deploying ONLY ${svc} (no dependencies)"
+
+            // 🔹 CRITICAL FIX → --no-deps
+            sh """
+                docker compose -f ${composeFile} up -d --no-deps ${svc}
+            """
+
+            echo "✅ Successfully deployed ${svc}"
         }
-
-        sh "docker compose -f ${composeFile} up -d ${svc}"
     }
 }
