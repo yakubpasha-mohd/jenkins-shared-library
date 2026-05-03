@@ -88,7 +88,18 @@ node
             servicesDir: 'services'
         )
     }
+    /* ==========================* /
+    stage(params.SERVICES == 'all' 
+    ? 'Sonar Scan (All Services)' 
+    : "Sonar Scan (${params.SERVICES})") {
 
+    services.each { svc ->
+
+        echo "🔍 Sonar scanning ${svc}"
+
+        sonarScan(svc)
+    }
+}
     /* ========================= */
     stage(params.SERVICES == 'all' 
         ? 'Docker All Services' 
